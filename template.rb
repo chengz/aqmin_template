@@ -46,14 +46,17 @@ uncomment_lines 'Gemfile', /'unicorn'/
 
 run 'bundle install'
 
+# install aqmin app
 generate("rspec:install")
 generate("aqmin:install")
+remove_file 'app/views/layouts/application.html.erb'
 rake("aqmin:install:migrations")
 route('mount Aqmin::Engine => "/", :as => "aqmin"')
 gsub_file 'config/application.rb', "config.active_record.whitelist_attributes = true" do |match|
   match = "config.active_record.whitelist_attributes = false"
 end
 
+# add action mailer config for development
 insert_into_file "config/environments/development.rb", :after => "config.action_mailer.raise_delivery_errors = false\n" do
   "\n  # added for devise
   config.action_mailer.default_url_options = { :protocol => 'https', :host => 'localhost' }\n"
@@ -64,7 +67,13 @@ insert_into_file "config/environments/development.rb", :after => "config.active_
   config.logger.level = Logger.const_get(ENV['LOG_LEVEL'] ? ENV['LOG_LEVEL'].upcase : 'DEBUG')\n"
 end
 
+# add content.css to asset precompile list and uncomment assets precompile
+gsub_file 'config/environments/production.rb', "search.js" do |match|
+  match = "content.css"
+end
+uncomment_lines 'config/environments/production.rb', /'config.assets.precompile'/
 
+# setup database
 if yes?("Would you like to config your database to use postgres?")
   db_username = ask("What is the username you use to access the database for development?")
   db_username = "default" if db_username.blank?
@@ -99,14 +108,20 @@ RUBY
     run "createdb #{test_db_name}"
   end
 end
+
+# run some rake tasks
 rake('db:migrate')
 rake('db:test:prepare')
 rake('aqmin:initialize')
+
+# remove vendor folder
+remove_dir('vendor')
 
 capify!
 
 git :init
 
+# user section
 if yes?("Would you like to install a user section?")
   model_name = ask("What would you like the user model to be called? [user]")
   model_name = "user" if model_name.blank?
