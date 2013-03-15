@@ -29,7 +29,6 @@ end
 
 run 'bundle install'
 
-say_wizard "Running 'after bundler' callbacks."
 generate("aqmin:install")
 rake("aqmin:install:migrations")
 route('mount Aqmin::Engine => "/", :as => "aqmin"')
