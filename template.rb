@@ -32,6 +32,9 @@ run 'bundle install'
 generate("aqmin:install")
 rake("aqmin:install:migrations")
 route('mount Aqmin::Engine => "/", :as => "aqmin"')
+application do
+  "config.active_record.whitelist_attributes = false"
+end
 
 if yes?("Would you like to install a user section?")
   model_name = ask("What would you like the user model to be called? [user]")
