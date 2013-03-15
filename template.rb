@@ -12,7 +12,7 @@ gem "simple_form", "~> 2.0.4"
 gem "client_side_validations", "~> 3.2.1"
 gem "client_side_validations-simple_form", "~> 2.0.1"
 gem "bootstrap-sass", "~> 2.3.0.0"
-gem "carrierwave", "~> 0.8.0"
+gem "carrierwave", "~> 0.6.2"
 gem 'fog'
 gem 'mini_magick'
 gem 'uuid'
@@ -90,6 +90,7 @@ test:
   database: test_db_name
 RUBY
   end
+  comment_lines "Gemfile", /sqlite3/
   gsub_file "config/database.yml", "db_username", db_username
   gsub_file "config/database.yml", "dev_db_name", dev_db_name
   gsub_file "config/database.yml", "test_db_name", test_db_name
