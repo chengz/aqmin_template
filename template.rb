@@ -18,7 +18,7 @@ gem 'mini_magick'
 gem 'uuid'
 gem 'aqmin', :git => "git@bitbucket.org:chengz/aqmin.git"
 
-gem_group :development, :test do
+gem_group :development do
   gem 'annotate'
   gem 'quiet_assets'
   gem 'better_errors'
@@ -26,23 +26,78 @@ gem_group :development, :test do
   gem 'meta_request'
   # Deploy with Capistrano
   gem 'capistrano', '~> 2.5.21'
-
+  gem "haml-rails"
+end
+gem_group :test do
+  gem "rspec-rails"
+  gem "generator_spec"
+  gem 'ammeter'
+  gem 'fuubar'
+  gem "shoulda-matchers"
+  gem "factory_girl_rails"
+  gem "database_cleaner"
 end
 
 insert_into_file 'Gemfile', :after => "group :assets do\n" do
-  'gem "font-awesome-rails"'
+  "  gem 'font-awesome-rails'\n"
 end
-uncomment_lines 'Gemfile', /therubyracer/
-uncomment_lines 'Gemfile', /unicorn/
+uncomment_lines 'Gemfile', /'therubyracer'/
+uncomment_lines 'Gemfile', /'unicorn'/
 
 run 'bundle install'
 
+generate("rspec:install")
 generate("aqmin:install")
 rake("aqmin:install:migrations")
 route('mount Aqmin::Engine => "/", :as => "aqmin"')
 gsub_file 'config/application.rb', "config.active_record.whitelist_attributes = true" do |match|
   match = "config.active_record.whitelist_attributes = false"
 end
+
+insert_into_file "config/environments/development.rb", :after => "config.action_mailer.raise_delivery_errors = false\n" do
+  "\n  # added for devise
+  config.action_mailer.default_url_options = { :protocol => 'https', :host => 'localhost' }\n"
+end
+
+insert_into_file "config/environments/development.rb", :after => "config.active_support.deprecation = :log\n" do
+  "\n  config.logger = Logger.new(STDOUT)
+  config.logger.level = Logger.const_get(ENV['LOG_LEVEL'] ? ENV['LOG_LEVEL'].upcase : 'DEBUG')\n"
+end
+
+
+if yes?("Would you like to config your database to use postgres?")
+  dev_db_name = ask("What would you like the database name for development? [app_dev]")
+  dev_db_name = "app_dev" if dev_db_name.blank?
+  test_db_name = ask("What would you like the database name for test? [app_test]")
+  test_db_name = "app_test" if test_db_name.blank?
+  remove_file "config/database.yml"
+  create_file 'config/database.yml' do
+      <<-RUBY
+development: &dev
+  adapter: postgresql
+  encoding: unicode
+  database: dev_db_name
+  pool: 5
+  username: cheng
+
+# Warning: The database defined as "test" will be erased and
+# re-generated from your development database when you run "rake".
+# Do not set this db to the same as development or production.
+test:
+  <<: *dev
+  database: test_db_name
+RUBY
+  end
+  gsub_file "config/database.yml", "dev_db_name", dev_db_name
+  gsub_file "config/database.yml", "test_db_name", test_db_name
+  if yes?("Do you want to create these databases?")
+    run "createdb #{dev_db_name}"
+    run "createdb #{test_db_name}"
+  end
+end
+rake('db:migrate')
+rake('db:test:prepare')
+rake('aqmin:initialize')
 
 capify!
 
