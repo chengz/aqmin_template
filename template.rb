@@ -66,6 +66,8 @@ end
 
 
 if yes?("Would you like to config your database to use postgres?")
+  db_username = ask("What is the username you use to access the database for development?")
+  db_username = "default" if db_username.blank?
   dev_db_name = ask("What would you like the database name for development? [app_dev]")
   dev_db_name = "app_dev" if dev_db_name.blank?
   test_db_name = ask("What would you like the database name for test? [app_test]")
@@ -78,7 +80,7 @@ development: &dev
   encoding: unicode
   database: dev_db_name
   pool: 5
-  username: cheng
+  username: db_username
 
 # Warning: The database defined as "test" will be erased and
 # re-generated from your development database when you run "rake".
@@ -88,6 +90,7 @@ test:
   database: test_db_name
 RUBY
   end
+  gsub_file "config/database.yml", "db_username", db_username
   gsub_file "config/database.yml", "dev_db_name", dev_db_name
   gsub_file "config/database.yml", "test_db_name", test_db_name
   if yes?("Do you want to create these databases?")
