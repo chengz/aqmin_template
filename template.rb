@@ -16,6 +16,8 @@ gem "carrierwave", "~> 0.6.2"
 gem 'fog'
 gem 'mini_magick'
 gem 'uuid'
+# make sure we have deployment key setup on the server
+# see aqmin.com:deploy
 gem 'aqmin', :git => "git@bitbucket.org:chengz/aqmin.git"
 
 gem_group :development do
