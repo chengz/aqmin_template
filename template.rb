@@ -27,7 +27,7 @@ gem_group :development do
   gem 'binding_of_caller'
   gem 'meta_request'
   # Deploy with Capistrano
-  gem 'capistrano', '~> 2.5.21'
+  gem 'capistrano'
   gem "haml-rails"
 end
 gem_group :test do
